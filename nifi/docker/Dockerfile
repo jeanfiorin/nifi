@@ -34,11 +34,6 @@ RUN chmod +x /opt/nifi/scripts/custom-start.sh
 
 COPY --chown=nifi:nifi nifi-toolkit /opt/nifi/scripts/nifi-toolkit
 
-
-COPY --chown=nifi:nifi state-management.xml /opt/nifi/nifi-current/conf/state-management.xml
-
-COPY --chown=nifi:nifi nifi.properties /opt/nifi/nifi-current/conf/nifi.properties
-
 ENTRYPOINT ["/opt/nifi/scripts/custom-start.sh"]
 
 USER nifi

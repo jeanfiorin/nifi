@@ -23,11 +23,11 @@ spec:
         - containerPort: 8443
         env:
         - name: POD_DEBUG
-          value: "false"
+          value: "true"
         - name: SINGLE_USER_CREDENTIALS_USERNAME
           value: "admin"
         - name: SINGLE_USER_CREDENTIALS_PASSWORD
-          value: "admin123admin123" 
+          value: "admin123admin123"
         - name: NIFI_WEB_HTTPS_PORT
           value: "8443"
         - name: NIFI_WEB_PROXY_HOST
@@ -41,7 +41,7 @@ spec:
         - name: NIFI_REMOTE_INPUT_SECURE
           value: "true"
         - name: NIFI_ZK_CONNECT_STRING
-          value: "zookeeper:2181"
+          value: "zookeeper.default.svc.cluster.local:2181"
         - name: NIFI_ELECTION_MAX_WAIT
           value: "5 mins"
         - name: NIFI_ELECTION_MAX_CANDIDATES
@@ -49,23 +49,60 @@ spec:
         - name: POD_NAMESPACE
           valueFrom:
             fieldRef:
-             fieldPath: metadata.namespace
-        # Configurações de TLS para o NiFi
+              fieldPath: metadata.namespace
         volumeMounts:
-        - name: nifi-volume
-          mountPath: /opt/nifi/nifi-current/data
+        - name: state-volume
+          mountPath: /opt/nifi/nifi-current/state
+        - name: conf-custom-volume
+          mountPath: /opt/nifi/nifi-current/conf-custom  # monta a pasta inteira
+          readOnly: true
+        - name: content-repository
+          mountPath: /opt/nifi/nifi-current/content_repository
+        - name: flowfile-repository
+          mountPath: /opt/nifi/nifi-current/flowfile_repository
+        - name: provenance-repository
+          mountPath: /opt/nifi/nifi-current/provenance_repository
+        - name: database-repository
+          mountPath: /opt/nifi/nifi-current/database_repository
         - name: ca-volume
           mountPath: /etc/tls
           readOnly: true
-
       volumes:
+      - name: state-volume
+        persistentVolumeClaim:
+          claimName: nifi-state-pvc
+      - name: conf-custom-volume
+        configMap:
+          name: nifi-conf-custom
       - name: ca-volume
         secret:
           secretName: nifi-ca-secret
 
+
   volumeClaimTemplates:
   - metadata:
-      name: nifi-volume
+      name: content-repository
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 1Gi
+  - metadata:
+      name: flowfile-repository
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 1Gi
+  - metadata:
+      name: provenance-repository
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 1Gi
+  - metadata:
+      name: database-repository
     spec:
       accessModes: ["ReadWriteOnce"]
       resources:
@@ -82,12 +119,12 @@ spec:
   selector:
     app: nifi
   ports:
-    - name: https
-      port: 8443
-      targetPort: 8443
-    - name: cluster
-      port: 8082
-      targetPort: 8082
-    - name: remote
-      port: 10000
-      targetPort: 10000
+  - name: https
+    port: 8443
+    targetPort: 8443
+  - name: cluster
+    port: 8082
+    targetPort: 8082
+  - name: remote
+    port: 10000
+    targetPort: 10000

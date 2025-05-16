@@ -1,17 +1,47 @@
 #!/bin/bash
 
-function listar_pods() {
-    echo "Pods em execução no namespace atual:"
-    echo "-------------------------------------"
-    mapfile -t pods < <(kubectl get pods --field-selector=status.phase=Running -o custom-columns=NAME:.metadata.name --no-headers)
+NAMESPACE=""
 
-    if [ ${#pods[@]} -eq 0 ]; then
-        echo "Nenhum pod em execução encontrado."
+function escolher_namespace() {
+    echo "Nenhum namespace informado. Selecione um namespace:"
+    echo "-------------------------------------"
+    mapfile -t namespaces < <(kubectl get ns -o custom-columns=NAME:.metadata.name --no-headers)
+
+    for i in "${!namespaces[@]}"; do
+        echo "[$i] ${namespaces[$i]}"
+    done
+
+    read -p "Digite o número do namespace: " ns_index
+    if [[ "$ns_index" =~ ^[0-9]+$ ]] && [ "$ns_index" -ge 0 ] && [ "$ns_index" -lt "${#namespaces[@]}" ]; then
+        NAMESPACE="${namespaces[$ns_index]}"
+        echo "✅ Namespace selecionado: $NAMESPACE"
+    else
+        echo "❌ Entrada inválida. Encerrando."
+        exit 1
+    fi
+}
+
+
+function listar_pods() {
+    echo
+    echo "Pods no namespace [$NAMESPACE]:"
+    echo "-------------------------------------------"
+    mapfile -t pod_lines < <(kubectl get pods -n "$NAMESPACE" --no-headers)
+
+    if [ ${#pod_lines[@]} -eq 0 ]; then
+        echo "❌ Nenhum pod encontrado."
         return
     fi
 
-    for i in "${!pods[@]}"; do
-        echo "[$i] ${pods[$i]} "
+    pods=()  # Reinicia a lista de nomes de pod
+
+    printf "%-5s %-40s %-15s\n" "ID" "NOME" "STATUS"
+    echo "---------------------------------------------------------------------"
+    for i in "${!pod_lines[@]}"; do
+        pod_name=$(echo "${pod_lines[$i]}" | awk '{print $1}')
+        pod_status=$(echo "${pod_lines[$i]}" | awk '{print $3}')
+        pods+=("$pod_name")
+        printf "[%2d] %-40s %-15s\n" "$i" "$pod_name" "$pod_status"
     done
 }
 
@@ -34,15 +64,15 @@ function interagir_com_pod() {
 
         case "$action" in
             1)
-                kubectl exec -it "$pod_name" -- bash || kubectl exec -it "$pod_name" -- sh
+                kubectl exec -n "$NAMESPACE" -it "$pod_name" -- bash || kubectl exec -n "$NAMESPACE" -it "$pod_name" -- sh
                 read -p "Pressione Enter para continuar..."
                 ;;
             2)
-                kubectl logs "$pod_name"
+                kubectl logs -n "$NAMESPACE" "$pod_name"
                 read -p "Pressione Enter para continuar..."
                 ;;
             3)
-                kubectl describe pod "$pod_name"
+                kubectl describe pod -n "$NAMESPACE" "$pod_name"
                 read -p "Pressione Enter para continuar..."
                 ;;
             [Qq])
@@ -61,16 +91,20 @@ function interagir_com_pod() {
 
 function listar_services() {
     echo
-    mapfile -t services < <(kubectl get svc --no-headers | awk '{print $1}')
-    
-    echo "URLs via minikube:"
-    echo "----------------------"
+    mapfile -t services < <(kubectl get svc -n "$NAMESPACE" --no-headers | awk '{print $1}')
+
+    echo "URLs via minikube (namespace: $NAMESPACE):"
+    echo "-------------------------------------------"
     for svc in "${services[@]}"; do
-        url=$(minikube service "$svc" --url 2>/dev/null)
+        url=$(minikube service "$svc" -n "$NAMESPACE" --url 2>/dev/null)
         echo "$svc → $url"
     done
     echo
 }
+
+# Inicialização
+clear
+escolher_namespace
 
 # Loop principal
 while true; do
