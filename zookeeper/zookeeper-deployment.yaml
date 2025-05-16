@@ -22,6 +22,24 @@ spec:
           value: "1"
         - name: ZOOKEEPER_SERVERS
           value: "zookeeper:2181"
+        volumeMounts:
+        - name: zookeeper-data
+          mountPath: /data
+      volumes:
+      - name: zookeeper-data
+        persistentVolumeClaim:
+          claimName: zookeeper-pvc
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: zookeeper-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
 ---
 apiVersion: v1
 kind: Service

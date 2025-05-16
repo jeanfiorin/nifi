@@ -4,7 +4,7 @@ metadata:
   name: nifi
 spec:
   serviceName: nifi-headless
-  replicas: 2
+  replicas: 3
   selector:
     matchLabels:
       app: nifi
@@ -23,7 +23,7 @@ spec:
         - containerPort: 8443
         env:
         - name: POD_DEBUG
-          value: "true"
+          value: "false"
         - name: SINGLE_USER_CREDENTIALS_USERNAME
           value: "admin"
         - name: SINGLE_USER_CREDENTIALS_PASSWORD
@@ -45,7 +45,7 @@ spec:
         - name: NIFI_ELECTION_MAX_WAIT
           value: "5 mins"
         - name: NIFI_ELECTION_MAX_CANDIDATES
-          value: "10"
+          value: "3"
         - name: POD_NAMESPACE
           valueFrom:
             fieldRef:
