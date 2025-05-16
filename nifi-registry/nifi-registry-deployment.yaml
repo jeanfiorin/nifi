@@ -52,7 +52,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: nifi-registry-service
+  name: nifi-registry  # Corrigido para nome igual ao deployment label
   namespace: nifi
 spec:
   type: NodePort

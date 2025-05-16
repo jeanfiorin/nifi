@@ -33,7 +33,7 @@ spec:
         - name: NIFI_ZK_CONNECT_STRING
           value: "zookeeper.default.svc.cluster.local:2181"
         - name: NIFI_REGISTRY_URL
-          value: "http://nifi-registry.nifi.svc.cluster.local:18080/nifi-registry-api"
+          value: "http://nifi-registry-service:18080/nifi-registry-api"
         - name: POD_NAMESPACE
           valueFrom:
             fieldRef:
