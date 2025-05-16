@@ -4,7 +4,7 @@ metadata:
   name: nifi
 spec:
   serviceName: nifi-headless
-  replicas: 3
+  replicas: 1
   selector:
     matchLabels:
       app: nifi

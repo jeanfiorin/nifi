@@ -9,7 +9,7 @@ if [ ! -f "$YAML_FILE" ]; then
 fi
 
 echo "Aplicando manifest $YAML_FILE..."
-kubectl apply -f "$YAML_FILE"
+kubectl apply -f "$YAML_FILE" -n nifi
 
 echo "Aguardando rollout do deployment nifi-registry no namespace nifi..."
 kubectl rollout status deployment/nifi-registry -n nifi
