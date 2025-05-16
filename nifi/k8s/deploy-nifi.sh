@@ -24,7 +24,7 @@ kubectl create configmap nifi-conf-custom -n $NAMESPACE --from-file=../conf-cust
 
 echo "Aplicando PVC..."
 
-kubectl apply -f nifi-pvc.yaml
+kubectl apply -f nifi-pvc.yaml -n "$NAMESPACE"
 
 echo "Aplicando ConfigMap de estado..."
 kubectl apply -f state-configmap.yaml -n "$NAMESPACE"
