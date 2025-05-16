@@ -1,0 +1,93 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: nifi
+spec:
+  serviceName: nifi-headless
+  replicas: 2
+  selector:
+    matchLabels:
+      app: nifi
+  template:
+    metadata:
+      labels:
+        app: nifi
+    spec:
+      containers:
+      - name: nifi
+        image: nifi-custom
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8080
+        - containerPort: 8082
+        - containerPort: 8443
+        env:
+        - name: POD_DEBUG
+          value: "false"
+        - name: SINGLE_USER_CREDENTIALS_USERNAME
+          value: "admin"
+        - name: SINGLE_USER_CREDENTIALS_PASSWORD
+          value: "admin123admin123" 
+        - name: NIFI_WEB_HTTPS_PORT
+          value: "8443"
+        - name: NIFI_WEB_PROXY_HOST
+          value: "192.168.49.2:32443"
+        - name: NIFI_CLUSTER_IS_NODE
+          value: "true"
+        - name: NIFI_CLUSTER_NODE_PROTOCOL_PORT
+          value: "8082"
+        - name: NIFI_REMOTE_INPUT_SOCKET_PORT
+          value: "10000"
+        - name: NIFI_REMOTE_INPUT_SECURE
+          value: "true"
+        - name: NIFI_ZK_CONNECT_STRING
+          value: "zookeeper:2181"
+        - name: NIFI_ELECTION_MAX_WAIT
+          value: "5 mins"
+        - name: NIFI_ELECTION_MAX_CANDIDATES
+          value: "10"
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+             fieldPath: metadata.namespace
+        # Configurações de TLS para o NiFi
+        volumeMounts:
+        - name: nifi-volume
+          mountPath: /opt/nifi/nifi-current/data
+        - name: ca-volume
+          mountPath: /etc/tls
+          readOnly: true
+
+      volumes:
+      - name: ca-volume
+        secret:
+          secretName: nifi-ca-secret
+
+  volumeClaimTemplates:
+  - metadata:
+      name: nifi-volume
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 1Gi
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nifi-headless
+spec:
+  clusterIP: None
+  selector:
+    app: nifi
+  ports:
+    - name: https
+      port: 8443
+      targetPort: 8443
+    - name: cluster
+      port: 8082
+      targetPort: 8082
+    - name: remote
+      port: 10000
+      targetPort: 10000

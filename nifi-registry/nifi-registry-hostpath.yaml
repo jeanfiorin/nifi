@@ -1,0 +1,65 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: nifi
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nifi-registry
+  namespace: nifi
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nifi-registry
+  template:
+    metadata:
+      labels:
+        app: nifi-registry
+    spec:
+      containers:
+        - name: nifi-registry
+          image: apache/nifi-registry:1.26.0
+          ports:
+            - containerPort: 18080
+          env:
+            - name: NIFI_REGISTRY_WEB_HTTP_PORT
+              value: "18080"
+            - name: NIFI_REGISTRY_DB_DIR
+              value: "/opt/nifi-registry/data/database"
+            - name: NIFI_REGISTRY_FLOW_STORAGE_DIR
+              value: "/opt/nifi-registry/flow_storage"
+          volumeMounts:
+            - name: db-volume
+              mountPath: /opt/nifi-registry/data/database
+            - name: flow-volume
+              mountPath: /opt/nifi-registry/flow_storage
+      volumes:
+        - name: db-volume
+          hostPath:
+            path: /data/nifi-registry/database
+            type: DirectoryOrCreate
+        - name: flow-volume
+          hostPath:
+            path: /data/nifi-registry/flow_storage
+            type: DirectoryOrCreate
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: nifi-registry-service
+  namespace: nifi
+spec:
+  type: NodePort
+  selector:
+    app: nifi-registry
+  ports:
+    - protocol: TCP
+      port: 18080
+      targetPort: 18080
+      nodePort: 31880  # Acesse via http://localhost:31880

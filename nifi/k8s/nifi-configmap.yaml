@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nifi-config
+data:
+  nifi.properties: |
+    nifi.cluster.is.node=true
+    nifi.zookeeper.connect.string=zookeeper:2181
+    nifi.web.http.host=0.0.0.0
+    nifi.web.http.port=8080
+    nifi.remote.input.host=0.0.0.0
+    nifi.remote.input.socket.port=8082
+    nifi.state.management.embedded.zookeeper.start=false
+    # Adicione explicitamente (já descomentado)
+    nifi.python.command=python3
+
