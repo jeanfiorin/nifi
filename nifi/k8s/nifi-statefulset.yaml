@@ -45,7 +45,7 @@ spec:
         - name: NIFI_ELECTION_MAX_WAIT
           value: "5 mins"
         - name: NIFI_ELECTION_MAX_CANDIDATES
-          value: "3"
+          value: "1"
         - name: POD_NAMESPACE
           valueFrom:
             fieldRef:
@@ -113,18 +113,13 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: nifi-headless
+  name: nifi
 spec:
-  clusterIP: None
   selector:
     app: nifi
   ports:
-  - name: https
-    port: 8443
-    targetPort: 8443
-  - name: cluster
-    port: 8082
-    targetPort: 8082
-  - name: remote
-    port: 10000
-    targetPort: 10000
+    - protocol: TCP
+      port: 8443
+      targetPort: 8443
+      nodePort: 32443  # Port do Minikube para acesso externo
+  type: NodePort

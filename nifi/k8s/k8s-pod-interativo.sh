@@ -58,7 +58,8 @@ function interagir_com_pod() {
         echo "-----------------------------"
         echo "[1] Exec Bash"
         echo "[2] Ver Logs"
-        echo "[3] Describe Pod"
+        echo "[3] Ver Logs em modo contínuo"        
+        echo "[4] Describe Pod"
         echo "[Q] Voltar"
         read -p "Escolha a ação: " action
 
@@ -72,6 +73,10 @@ function interagir_com_pod() {
                 read -p "Pressione Enter para continuar..."
                 ;;
             3)
+                kubectl logs -f -n "$NAMESPACE" "$pod_name"
+                read -p "Pressione Enter para continuar..."
+                ;;                
+            4)
                 kubectl describe pod -n "$NAMESPACE" "$pod_name"
                 read -p "Pressione Enter para continuar..."
                 ;;

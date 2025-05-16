@@ -19,8 +19,6 @@ if [ "${POD_DEBUG}" = "true" ]; then
 fi
 
 
-
-
 if ${scripts_dir}/check_zookeeper.sh; then
     echo "✅ Zookeeper OK"
 else
@@ -61,6 +59,20 @@ done
 
 echo 'Configurando entradas customizadas no nifi.properties'
 prop_replace 'nifi.sensitive.props.key' "CHAVE-CLUSTER"
+prop_replace 'nifi.zookeeper.connect.timeout' "30 secs"
+prop_replace 'nifi.zookeeper.session.timeout' "30 secs"
+
+prop_replace 'nifi.cluster.protocol.heartbeat.interval' "30 secs"
+prop_replace 'nifi.cluster.node.read.timeout' "30 secs"
+prop_replace 'nifi.cluster.node.connection.timeout' "30 secs"
+prop_replace 'nifi.cluster.node.read.timeout' "30 secs"
+prop_replace 'nifi.cluster.load.balance.comms.timeout' "30 secs"
+
+
+# Reduza threads para economizar CPU
+prop_replace 'nifi.flowengine.threads' "8"
+prop_replace 'nifi.cluster.node.max.concurrent.requests' "50"
+
 
 export NIFI_CLUSTER_ADDRESS=${POD_FQDN}
 
