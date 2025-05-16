@@ -1,9 +1,12 @@
 #!/bin/sh -e
 
-#https://medium.com/@chnzhoujun/how-to-resolve-sni-issue-when-upgrading-to-nifi-2-0-907e07d465c5
-#https://stackoverflow.com/questions/79472881/http-error-400-invalid-sni-when-deploying-nifi-on-docker/
+if [ "${POD_DEBUG}" = "true" ]; then
+  echo "⚠️  POD_DEBUG ativado."
+  tail -f /dev/null
+fi
 
-scripts_dir='/opt/nifi/scripts'
+
+export scripts_dir='/opt/nifi/scripts'
 
 [ -f "${scripts_dir}/common.sh" ] && . "${scripts_dir}/common.sh"
 
@@ -13,10 +16,6 @@ export POD_FQDN=$(hostname -f)
 export KEYSTORE_PASSWORD=changeit
 export TRUSTSTORE_PASSWORD=changeit
 
-if [ "${POD_DEBUG}" = "true" ]; then
-  echo "⚠️  POD_DEBUG ativado."
-  tail -f /dev/null
-fi
 
 
 if ${scripts_dir}/check_zookeeper.sh; then
@@ -34,8 +33,7 @@ export KEYSTORE_TYPE=JKS
 export TRUSTSTORE_TYPE=JKS
 
 
-python3 ${scripts_dir}/register_pod.py > /dev/null 2>> /opt/nifi/nifi-current/logs/register_pod_error.log &
-python3 ${scripts_dir}/update_hosts.py > /dev/null 2>> /opt/nifi/nifi-current/logs/register_pod_error.log &
+${scripts_dir}/register_pod.sh &
 
 ORIGEM="/opt/nifi/nifi-current/conf-custom"
 DESTINO="/opt/nifi/nifi-current/conf"
@@ -55,12 +53,23 @@ ls -1 "$ORIGEM"/* | while read -r arquivo_origem; do
     chown nifi:nifi "$arquivo_destino"
 done
 
+# Definindo variáveis de ambiente diretamente no script
+export NIFI_WEB_HTTPS_PORT="8443"
+export NIFI_REMOTE_INPUT_SOCKET_PORT="10000"
+export NIFI_REMOTE_INPUT_SECURE="true"
+export NIFI_CLUSTER_ADDRESS=${POD_FQDN}
 
 
 echo 'Configurando entradas customizadas no nifi.properties'
 prop_replace 'nifi.sensitive.props.key' "CHAVE-CLUSTER"
 prop_replace 'nifi.zookeeper.connect.timeout' "30 secs"
 prop_replace 'nifi.zookeeper.session.timeout' "30 secs"
+
+prop_replace 'nifi.cluster.node.protocol.port' "8082"
+prop_replace 'nifi.cluster.is.node' "true"
+prop_replace 'nifi.cluster.flow.election.max.wait.time' "5 mins"
+prop_replace 'nifi.cluster.flow.election.max.candidates' "1"
+
 
 prop_replace 'nifi.cluster.protocol.heartbeat.interval' "30 secs"
 prop_replace 'nifi.cluster.node.read.timeout' "30 secs"
@@ -73,8 +82,9 @@ prop_replace 'nifi.cluster.load.balance.comms.timeout' "30 secs"
 prop_replace 'nifi.flowengine.threads' "8"
 prop_replace 'nifi.cluster.node.max.concurrent.requests' "50"
 
+//Regitry
+prop_replace 'nifi.registry.url' "${NIFI_REGISTRY_URL}"
 
-export NIFI_CLUSTER_ADDRESS=${POD_FQDN}
 
 ${scripts_dir}/start.sh
 

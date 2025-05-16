@@ -23,29 +23,17 @@ spec:
         - containerPort: 8443
         env:
         - name: POD_DEBUG
-          value: "false"
+          value: "true"
         - name: SINGLE_USER_CREDENTIALS_USERNAME
           value: "admin"
         - name: SINGLE_USER_CREDENTIALS_PASSWORD
           value: "admin123admin123"
-        - name: NIFI_WEB_HTTPS_PORT
-          value: "8443"
         - name: NIFI_WEB_PROXY_HOST
           value: "192.168.49.2:32443"
-        - name: NIFI_CLUSTER_IS_NODE
-          value: "true"
-        - name: NIFI_CLUSTER_NODE_PROTOCOL_PORT
-          value: "8082"
-        - name: NIFI_REMOTE_INPUT_SOCKET_PORT
-          value: "10000"
-        - name: NIFI_REMOTE_INPUT_SECURE
-          value: "true"
         - name: NIFI_ZK_CONNECT_STRING
           value: "zookeeper.default.svc.cluster.local:2181"
-        - name: NIFI_ELECTION_MAX_WAIT
-          value: "5 mins"
-        - name: NIFI_ELECTION_MAX_CANDIDATES
-          value: "1"
+        - name: NIFI_REGISTRY_URL
+          value: "http://nifi-registry.nifi.svc.cluster.local:18080/nifi-registry-api"
         - name: POD_NAMESPACE
           valueFrom:
             fieldRef:
@@ -56,14 +44,14 @@ spec:
         - name: conf-custom-volume
           mountPath: /opt/nifi/nifi-current/conf-custom  # monta a pasta inteira
           readOnly: true
-        - name: content-repository
-          mountPath: /opt/nifi/nifi-current/content_repository
-        - name: flowfile-repository
-          mountPath: /opt/nifi/nifi-current/flowfile_repository
-        - name: provenance-repository
+        - name: provenance-repository # útil para auditoria/histórico
           mountPath: /opt/nifi/nifi-current/provenance_repository
-        - name: database-repository
-          mountPath: /opt/nifi/nifi-current/database_repository
+        #- name: content-repository #  Pode ser reconstruído
+        #  mountPath: /opt/nifi/nifi-current/content_repository
+        #- name: flowfile-repository  # Em cluster efêmero, pode ser volátil
+        #  mountPath: /opt/nifi/nifi-current/flowfile_repository
+        #- name: database-repository # Se estiver usando Registry e cluster, não é necessário persistência
+        #  mountPath: /opt/nifi/nifi-current/database_repository
         - name: ca-volume
           mountPath: /etc/tls
           readOnly: true
