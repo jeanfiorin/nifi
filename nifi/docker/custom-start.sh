@@ -33,7 +33,7 @@ export KEYSTORE_TYPE=JKS
 export TRUSTSTORE_TYPE=JKS
 
 
-${scripts_dir}/register_pod.sh &
+#${scripts_dir}/register_pod.sh &
 
 ORIGEM="/opt/nifi/nifi-current/conf-custom"
 DESTINO="/opt/nifi/nifi-current/conf"
@@ -57,26 +57,20 @@ done
 export NIFI_WEB_HTTPS_PORT=8443
 export NIFI_REMOTE_INPUT_SOCKET_PORT=10000
 export NIFI_REMOTE_INPUT_SECURE=true
-export NIFI_CLUSTER_ADDRESS=${POD_FQDN}
+export NIFI_CLUSTER_ADDRESS=${POD_IP}
 export NIFI_CLUSTER_IS_NODE=true
 export NIFI_CLUSTER_NODE_PROTOCOL_PORT=8082
 export NIFI_REMOTE_INPUT_SOCKET_PORT=10000
 export NIFI_REMOTE_INPUT_SECURE=true
 export NIFI_ELECTION_MAX_WAIT="5 mins"
 export NIFI_ELECTION_MAX_CANDIDATES=1
-
+export NIFI_WEB_HTTPS_HOST=${POD_IP}
+export NIFI_REMOTE_INPUT_HOST=${POD_IP}
 
 echo 'Configurando entradas customizadas no nifi.properties'
 prop_replace 'nifi.sensitive.props.key' "CHAVE-CLUSTER"
 prop_replace 'nifi.zookeeper.connect.timeout' "30 secs"
 prop_replace 'nifi.zookeeper.session.timeout' "30 secs"
-
-#prop_replace 'nifi.cluster.node.protocol.port' "8082"
-#prop_replace 'nifi.cluster.is.node' "true"
-#prop_replace 'nifi.cluster.flow.election.max.wait.time' "5 mins"
-#prop_replace 'nifi.cluster.flow.election.max.candidates' "1"
-
-
 prop_replace 'nifi.cluster.protocol.heartbeat.interval' "30 secs"
 prop_replace 'nifi.cluster.node.read.timeout' "30 secs"
 prop_replace 'nifi.cluster.node.connection.timeout' "30 secs"

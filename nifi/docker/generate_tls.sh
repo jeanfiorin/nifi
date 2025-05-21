@@ -48,6 +48,7 @@ DNS.5 = nifi.default.svc
 DNS.6 = nifi.default.svc.cluster.local
 DNS.7 = nifi-headless
 DNS.8 = nifi-headless.default.svc.cluster.local
+IP.1  = $POD_IP
 EOF
 
 # 3. Gera CSR
