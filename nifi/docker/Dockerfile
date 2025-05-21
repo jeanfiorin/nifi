@@ -34,8 +34,6 @@ RUN chmod +x /opt/nifi/scripts/custom-start.sh
 
 COPY --chown=nifi:nifi nifi-toolkit /opt/nifi/scripts/nifi-toolkit
 
-RUN rm -f /opt/nifi/nifi-current/conf/flow.xml.gz
-
 
 ENTRYPOINT ["/opt/nifi/scripts/custom-start.sh"]
 
